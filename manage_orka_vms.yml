@@ -10,7 +10,7 @@
   tasks:
     - name: Deploy Orka VM
       ansible.builtin.command:
-        cmd: "orka3 vm deploy --image {{ base_image }} --name {{ vm_name }} --cpu {{ vcpu }} --memory {{ vram }}"
+        cmd: "orka3 deploy {{ vm_name }} --image {{ base_image }}"
       register: deploy_output
       changed_when: deploy_output.rc == 0
 
@@ -62,6 +62,6 @@
   tasks:
     - name: Delete Orka VM
       ansible.builtin.command:
-        cmd: "orka3 vm delete --name {{ vm_name }}"
+        cmd: "orka3 delete {{ vm_name }}"
       when: vm_name is defined
       changed_when: true
