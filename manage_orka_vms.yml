@@ -4,7 +4,7 @@
   connection: local
   vars:
     vm_name: "cicd-vm-{{ ansible_date_time.epoch }}"
-    base_image: "Sonoma.orka"
+    base_image: "sonoma-90gb-orka3-arm"
     vcpu: 4
     vram: 8
   tasks:
@@ -17,18 +17,18 @@
 
     - name: Wait for VM to be ready
       ansible.builtin.wait_for:
-        host: "{{ deploy_output.stdout | regex_search('IP: (\S+)', '\1') | first }}"
-        port: 8822
-        timeout: 300
+        host: "{{ deploy_output.stdout | regex_search('IP: (\\S+)', '\\1') | first }}"
+        port: 5555
+        timeout: 600
       register: vm_ip
       failed_when: vm_ip.state != 'started'
 
 - name: Configure Orka VM
-  hosts: "{{ hostvars['localhost']['deploy_output'].stdout | regex_search('IP: (\S+)', '\1') | first }}"
+  hosts: "{{ deploy_output.stdout | regex_search('IP: (\\S+)', '\\1') | first }}"
   become: yes
   vars:
     ansible_user: admin
-    ansible_port: 8822
+    ansible_port: 5555
     ansible_ssh_private_key_file: ~/.ssh/ansible_key
   tasks:
     - name: Copy SSH public key to VM
