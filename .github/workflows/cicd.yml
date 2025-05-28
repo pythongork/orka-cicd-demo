@@ -20,10 +20,10 @@ jobs:
 
       - name: Log in to Orka
         env:
-          ORKA_ENDPOINT: ${{ secrets.ORKA_ENDPOINT }}
+          ORKA_ENDPOINT_URL: ${{ secrets.ORKA_ENDPOINT }}
           ORKA_USER: ${{ secrets.ORKA_USER }}
           ORKA_PASSWORD: ${{ secrets.ORKA_PASSWORD }}
-        run: orka3 login --endpoint $ORKA_ENDPOINT --user $ORKA_USER --password $ORKA_PASSWORD
+        run: orka3 login --user $ORKA_USER --password $ORKA_PASSWORD
 
       - name: Run Ansible Playbook
         run: ansible-playbook manage_orka_vms.yml
