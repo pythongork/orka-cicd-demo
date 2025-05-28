@@ -10,8 +10,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install Ansible
-        run: pip3 install ansible
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Create virtual environment
+        run: python3 -m venv venv
+
+      - name: Install dependencies
+        run: |
+          source venv/bin/activate
+          pip install ansible requests
+          deactivate
 
       - name: Install Orka CLI
         run: |
@@ -24,4 +35,7 @@ jobs:
         run: orka3 login
 
       - name: Run Ansible Playbook
-        run: ansible-playbook manage_orka_vms.yml
+        run: |
+          source venv/bin/activate
+          ansible-playbook manage_orka_vms.yml
+          deactivate
