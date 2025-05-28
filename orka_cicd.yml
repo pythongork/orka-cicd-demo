@@ -13,29 +13,34 @@
       changed_when: deploy_output.rc == 0
       failed_when: deploy_output.rc != 0
 
-    - name: Get VM IP
-      ansible.builtin.command:
-        cmd: "orka3 vm list --name {{ vm_name }} --output json"
-      register: vm_list_output
-      changed_when: false
-      when: deploy_output.rc == 0
+    - block:
+        - name: Get VM List
+          ansible.builtin.command:
+            cmd: "orka3 vm list --output json"
+          register: vm_list_output
+          changed_when: false
+          when: deploy_output.rc == 0
 
-    - name: Extract VM IP
-      ansible.builtin.set_fact:
-        vm_ip_address: "{{ (vm_list_output.stdout | from_json).vms[0].ip | default('') }}"
-      when: vm_list_output.rc == 0
+        - name: Extract VM IP
+          ansible.builtin.set_fact:
+            vm_ip_address: "{{ (vm_list_output.stdout | from_json).vms | selectattr('name', 'equalto', vm_name) | map(attribute='ip') | first | default('') }}"
+          when: vm_list_output.rc == 0
 
-    - name: Wait for VM to be ready
-      ansible.builtin.wait_for:
-        host: "{{ vm_ip_address }}"
-        port: 8822
-        timeout: 300
-      when: vm_ip_address != ''
-      register: vm_ip
-      failed_when: vm_ip.state != 'started'
-
-    - name: Delete Orka VM
-      ansible.builtin.command:
-        cmd: "orka3 vm delete {{ vm_name }}"
-      when: deploy_output.rc == 0
-      changed_when: true
+        - name: Wait for VM to be ready
+          ansible.builtin.wait_for:
+            host: "{{ vm_ip_address }}"
+            port: 8822
+            timeout: 300
+          when: vm_ip_address != ''
+          register: vm_ip
+          failed_when: vm_ip.state != 'started'
+      rescue:
+        - name: Log failure
+          ansible.builtin.debug:
+            msg: "Failed to get VM IP or connect; proceeding to cleanup."
+      always:
+        - name: Delete Orka VM
+          ansible.builtin.command:
+            cmd: "orka3 vm delete {{ vm_name }}"
+          when: deploy_output.rc == 0
+          changed_when: true
