@@ -1,0 +1,20 @@
+---
+- name: Manage Orka VM
+  hosts: localhost
+  connection: local
+  vars:
+    vm_name: "cicd-vm-{{ ansible_date_time.epoch }}"
+    base_image: "sonoma-90gb-orka3-arm"
+  tasks:
+    - name: Deploy Orka VM
+      ansible.builtin.command:
+        cmd: "orka3 vm deploy {{ vm_name }} --image {{ base_image }}"
+      register: deploy_output
+      changed_when: deploy_output.rc == 0
+      failed_when: deploy_output.rc != 0
+
+    - name: Delete Orka VM
+      ansible.builtin.command:
+        cmd: "orka3 vm delete {{ vm_name }}"
+      when: deploy_output.rc == 0
+      changed_when: true
