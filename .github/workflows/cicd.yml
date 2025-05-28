@@ -1,0 +1,29 @@
+name: Orka CI/CD Pipeline
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Ansible
+        run: pip3 install ansible
+
+      - name: Install Orka CLI
+        run: |
+          brew tap macstadium/orka
+          brew install orka3
+
+      - name: Log in to Orka
+        env:
+          ORKA_ENDPOINT: ${{ secrets.ORKA_ENDPOINT }}
+          ORKA_USER: ${{ secrets.ORKA_USER }}
+          ORKA_PASSWORD: ${{ secrets.ORKA_PASSWORD }}
+        run: orka3 login --endpoint $ORKA_ENDPOINT --user $ORKA_USER --password $ORKA_PASSWORD
+
+      - name: Run Ansible Playbook
+        run: ansible-playbook manage_orka_vms.yml
